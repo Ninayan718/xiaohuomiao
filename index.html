@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="小火苗">
+<title>小火苗</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="apple-touch-icon.png">
+<style>
+:root{
+  --bg:#FAF8F4; --card:#FFFFFF; --ink:#2C2C2A; --ink2:#6B6A64; --ink3:#9C9A91;
+  --line:rgba(44,44,42,.12); --line2:rgba(44,44,42,.25);
+  --amber:#BA7517; --amber-soft:#FAEEDA; --amber-mid:#FAC775;
+  --ember:#993C1D; --ember-soft:#FAECE7;
+  --red:#F09595; --red-soft:#FCEBEB;
+  --green:#3B6D11; --green-soft:#EAF3DE;
+  --blue:#185FA5; --blue-soft:#E6F1FB;
+  --r-md:10px; --r-lg:14px;
+}
+*{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
+body{background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Segoe UI",sans-serif; font-size:15px; line-height:1.6; min-height:100vh; padding-bottom:calc(72px + env(safe-area-inset-bottom));}
+.wrap{max-width:480px; margin:0 auto; padding:0 16px;}
+header{padding:20px 16px 8px; max-width:480px; margin:0 auto; display:flex; align-items:center; justify-content:space-between;}
+.brand{display:flex; align-items:center; gap:8px; font-weight:500; font-size:17px;}
+.brand svg{display:block;}
+.datechip{font-size:12px; color:var(--ink3);}
+.card{background:var(--card); border:0.5px solid var(--line); border-radius:var(--r-lg); padding:16px; margin-bottom:12px;}
+button{font-family:inherit; font-size:14px; color:var(--ink); background:transparent; border:0.5px solid var(--line2); border-radius:var(--r-md); padding:9px 14px; cursor:pointer; transition:opacity .15s;}
+button:active{opacity:.6;}
+.btn-primary{background:var(--amber); border-color:var(--amber); color:#fff; font-weight:500;}
+.btn-ghost{border-color:var(--line); color:var(--ink2);}
+.btn-danger-ghost{border-color:rgba(153,60,29,.4); color:var(--ember);}
+.btn-block{width:100%;}
+.btn-sm{padding:5px 10px; font-size:12px; border-radius:8px;}
+.muted{color:var(--ink2); font-size:13px;}
+.tiny{color:var(--ink3); font-size:12px;}
+.quote{background:var(--amber-soft); border-radius:var(--r-md); padding:10px 12px; font-size:13px; color:#6b4a12;}
+.quote .q-label{font-size:11px; color:#a9834a; margin-bottom:2px;}
+.status-badge{display:inline-flex; align-items:center; gap:5px; font-size:12px; padding:2px 9px; border-radius:999px;}
+.st-normal{background:var(--green-soft); color:var(--green);}
+.st-wobble{background:var(--amber-soft); color:var(--amber);}
+.st-ember{background:var(--ember-soft); color:var(--ember);}
+.st-reviving{background:var(--blue-soft); color:var(--blue);}
+.st-dormant{background:#F1EFE8; color:var(--ink2);}
+.item-head{display:flex; align-items:flex-start; gap:10px;}
+.item-head .flame{flex:none; margin-top:2px;}
+.item-info{flex:1; min-width:0;}
+.item-name{font-weight:500; font-size:15px;}
+.item-action{font-size:13px; color:var(--ink2); margin-top:1px; overflow-wrap:break-word;}
+.checkbtn{margin-top:10px; width:100%; padding:10px 0; font-size:14px;}
+.checkbtn.done{background:var(--green-soft); border-color:transparent; color:var(--green);}
+.flame-wobble{animation:wob 1.6s ease-in-out infinite; transform-origin:50% 90%;}
+@keyframes wob{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+.banner{display:flex; gap:10px; background:var(--blue-soft); border-radius:var(--r-lg); padding:12px 14px; margin-bottom:12px; font-size:13px; color:#144a83;}
+.banner.warn{background:var(--amber-soft); color:#6b4a12;}
+.addrow{display:flex; justify-content:center; padding:6px 0 20px;}
+.linklike{border:none; color:var(--ink3); font-size:13px; text-decoration:underline; text-underline-offset:3px;}
+.bottomnav{position:fixed; bottom:0; left:0; right:0; background:rgba(255,255,255,.94); border-top:0.5px solid var(--line); display:flex; justify-content:center; gap:0; padding-bottom:env(safe-area-inset-bottom); z-index:40;}
+.bottomnav button{border:none; border-radius:0; padding:12px 26px; font-size:13px; color:var(--ink3);}
+.bottomnav button.active{color:var(--amber); font-weight:500;}
+.modal-mask{position:fixed; inset:0; background:rgba(44,44,42,.35); z-index:50; display:flex; align-items:flex-end; justify-content:center;}
+.modal{background:var(--card); width:100%; max-width:480px; border-radius:18px 18px 0 0; padding:20px 18px calc(24px + env(safe-area-inset-bottom)); max-height:88vh; overflow-y:auto;}
+.modal h3{font-size:16px; font-weight:500; margin-bottom:14px;}
+.field{margin-bottom:12px;}
+.field label{display:block; font-size:12px; color:var(--ink2); margin-bottom:4px;}
+.field input,.field textarea{width:100%; border:0.5px solid var(--line2); border-radius:var(--r-md); padding:10px 12px; font-size:14px; font-family:inherit; background:#fff; color:var(--ink);}
+.field textarea{resize:vertical; min-height:64px;}
+.field input:focus,.field textarea:focus{outline:none; border-color:var(--amber);}
+.row{display:flex; gap:8px;}
+.row>*{flex:1;}
+.cal{display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-top:8px;}
+.cal .wd{font-size:11px; color:var(--ink3); text-align:center;}
+.cal .d{aspect-ratio:1; display:flex; align-items:center; justify-content:center; font-size:12px; border-radius:8px; color:var(--ink2);}
+.cal .d.on{background:var(--amber-mid); color:#5b3a06; font-weight:500;}
+.cal .d.off{background:#F1EFE8; color:var(--ink3);}
+.cal .d.future{color:#DAD7CE;}
+.cal .d.today{outline:1.5px solid var(--amber); outline-offset:-1.5px;}
+.cal-head{display:flex; align-items:center; justify-content:space-between; margin-top:14px;}
+.statgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px;}
+.stat{background:#F7F5F0; border-radius:var(--r-md); padding:10px 12px;}
+.stat .sl{font-size:12px; color:var(--ink2);}
+.stat .sv{font-size:22px; font-weight:500; margin-top:2px;}
+.stat .sv small{font-size:12px; color:var(--ink3); font-weight:400;}
+.tl{border-left:2px solid var(--line2); padding-left:12px; display:flex; flex-direction:column; gap:6px; margin-top:8px;}
+.tl p{font-size:13px; color:var(--ink2);}
+.empty{text-align:center; padding:36px 20px; color:var(--ink3); font-size:13px;}
+.hero{ text-align:center; padding:44px 24px 20px;}
+.hero h2{font-size:19px; font-weight:500; margin:14px 0 6px;}
+.hero p{color:var(--ink2); font-size:14px; max-width:300px; margin:0 auto 20px;}
+.gate-item{display:flex; align-items:center; justify-content:space-between; gap:8px; border:0.5px solid var(--line); border-radius:var(--r-md); padding:10px 12px; margin-bottom:8px;}
+.sectiontitle{font-size:14px; font-weight:500; margin:20px 0 10px;}
+.report-weeks{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;}
+.chip{font-size:12px; border:0.5px solid var(--line2); border-radius:999px; padding:4px 12px; color:var(--ink2);}
+.chip.cur{background:var(--amber-soft); border-color:transparent; color:var(--amber);}
+.hidden{display:none!important;}
+.countdown{font-size:12px; color:var(--ember); background:var(--ember-soft); border-radius:999px; padding:2px 10px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <svg width="22" height="22" viewBox="0 0 24 24"><path d="M12 2c1.4 4.2-4.2 6.3-4.2 11.2A5.1 5.1 0 0 0 13.1 18c0-2.6 1.4-3.7 2.1-5.6.5 1.7 2 2.6 2 5.1A6.2 6.2 0 0 1 12 23a7.3 7.3 0 0 1-7.3-7.4C4.7 8.8 10.3 7 12 2z" fill="#BA7517"/></svg>
+    小火苗
+  </div>
+  <div class="datechip" id="datechip"></div>
+</header>
+
+<div class="wrap" id="main"></div>
+
+<nav class="bottomnav">
+  <button data-tab="today" class="active">今日</button>
+  <button data-tab="report">周报</button>
+  <button data-tab="shelf">休眠架</button>
+</nav>
+
+<div id="modalroot"></div>
+
+<script>
+"use strict";
+const KEY = "xiaohuomiao_v1";
+const MS_DAY = 86400000;
+const DIPS = {3:"第三天，是第一次想放手的日子",14:"第二周，新鲜感刚好用完",42:"第六周，最隐蔽的弃坑点"};
+
+function dayKey(d){ d = d || new Date(); const p=n=>String(n).padStart(2,"0"); return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate()); }
+function parseKey(k){ const [y,m,d]=k.split("-").map(Number); return new Date(y,m-1,d); }
+function diffDays(a,b){ return Math.round((parseKey(b)-parseKey(a))/MS_DAY); }
+function addDays(k,n){ const d=parseKey(k); d.setDate(d.getDate()+n); return dayKey(d); }
+function fmtMD(k){ const [,m,d]=k.split("-"); return m+"/"+d; }
+function esc(s){ return String(s||"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+
+function load(){
+  try{ const raw = localStorage.getItem(KEY); if(raw) return JSON.parse(raw); }catch(e){}
+  return { items:[], seenReports:[], reports:{} };
+}
+let S = load();
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+
+const STATUS_TXT = {normal:"正常燃烧", wobble:"摇摇欲坠", ember:"炭火", reviving:"复活中", dormant:"休眠中", ended:"已放下"};
+function reqText(st, action){
+  if(st==="ember") return "炭火模式：只要求 1 分钟的象征性动作";
+  if(st==="wobble"||st==="reviving") return "减半模式：做到原来的一半就算";
+  return action;
+}
+
+// ---- 状态引擎：从打卡记录推导状态并记录事件 ----
+function missedStreak(item){
+  let n=0, k=addDays(today, -1);
+  while(!item.checkins[k] && diffDays(item.createdAt,k)>=0){ n++; k=addDays(k,-1); if(n>3650)break; }
+  return n;
+}
+function refreshStatuses(){
+  const t = today;
+  S.items.forEach(it=>{
+    if(it.ended || it.dormant) return;
+    const missed = missedStreak(it);
+    const prev = it.status || "normal";
+    let st = prev;
+    if(missed>=5){
+      st="ember";
+      if(prev!=="ember"){ logEvent(it,"ember", "火苗熄成了炭火"); it.emberSince = t; }
+      it.revivingStreak = 0;
+    } else if(missed>=2){
+      st="wobble";
+      if(prev==="ember"){ logEvent(it,"wobble","炭火回温为摇摇欲坠"); }
+      else if(prev==="normal"){ logEvent(it,"wobble","漏了两天，火苗变小了"); }
+      if(prev==="reviving"||prev==="ember") it.revivingStreak=0;
+    } else {
+      if((it.revivingStreak||0)>=3){
+        if(prev!=="normal"){ logEvent(it,"restored","满血复活，回到正常燃烧"); }
+        st="normal"; it.revivingStreak=0; it.emberSince=null;
+      } else if((it.revivingStreak||0)>=1){
+        st="reviving";
+      } else st="normal";
+    }
+    it.status = st;
+    // 冷却到期提示由渲染时判断
+  });
+}
+function logEvent(it,type,txt){ if(!it.events) it.events=[]; it.events.push({date:today, type, txt}); }
+
+// ---- 打卡 ----
+function checkin(id){
+  const it = S.items.find(x=>x.id===id); if(!it) return;
+  it._snap = {status:it.status, revivingStreak:it.revivingStreak||0};
+  it.checkins[today] = true;
+  if(it.cooldown) it.cooldown=null;
+  if(it.status==="ember"){ it.revivingStreak=1; it.status="reviving"; logEvent(it,"revive","炭火重新点亮，复活中"); }
+  else if(it.status==="reviving"){ it.revivingStreak=(it.revivingStreak||0)+1;
+    if(it.revivingStreak>=3){ it.status="normal"; it.revivingStreak=0; logEvent(it,"restored","连续三天，满血复活"); }
+  } else if(it.status==="wobble"){ it.status="normal"; logEvent(it,"wobble-recover","火苗重新旺了起来"); }
+  save(); render();
+}
+function uncheckin(id){
+  const it = S.items.find(x=>x.id===id); if(!it) return;
+  delete it.checkins[today];
+  if(it._snap){ it.status=it._snap.status; it.revivingStreak=it._snap.revivingStreak; it._snap=null; }
+  save(); render();
+}
+
+// ---- 火苗图标 ----
+function flameSVG(st,size){
+  size=size||22;
+  if(st==="ember"||st==="dormant") return `<svg class="flame" width="${size}" height="${size}" viewBox="0 0 24 24"><circle cx="12" cy="16" r="5.5" fill="${st==="dormant"?"#D3D1C7":"#993C1D"}"/><circle cx="12" cy="16" r="2.6" fill="${st==="dormant"?"#F1EFE8":"#FAECE7"}"/></svg>`;
+  const cls = st==="wobble"?' class="flame-wobble"':" class='flame'";
+  const color = st==="wobble"?"#D8B06A": st==="reviving"?"#378ADD":"#BA7517";
+  return `<svg${cls} width="${size}" height="${size}" viewBox="0 0 24 24"><path d="M12 2c1.4 4.2-4.2 6.3-4.2 11.2A5.1 5.1 0 0 0 13.1 18c0-2.6 1.4-3.7 2.1-5.6.5 1.7 2 2.6 2 5.1A6.2 6.2 0 0 1 12 23a7.3 7.3 0 0 1-7.3-7.4C4.7 8.8 10.3 7 12 2z" fill="${color}"/></svg>`;
+}
+function statusBadge(st){
+  return `<span class="status-badge st-${st}">${STATUS_TXT[st]||""}</span>`;
+}
+
+// ---- 渲染 ----
+let currentTab="today";
+let calCursor = {}; // itemId -> "YYYY-MM"
+const today = dayKey();
+
+function activeItems(){ return S.items.filter(x=>!x.ended && !x.dormant); }
+function dipBanner(){
+  for(const it of activeItems()){
+    const ds = diffDays(it.createdAt, today);
+    if(DIPS[ds] && !it.checkins[today]){
+      return `<div class="banner warn"><div><b>${esc(it.name)}</b> · ${DIPS[ds]}。<br>你当初是这么说的：「${esc(it.why)}」</div></div>`;
+    }
+  }
+  return "";
+}
+function cooldownChip(it){
+  if(!it.cooldown) return "";
+  const left = 48 - Math.floor((Date.now()-it.cooldown.startedAt)/3600000);
+  if(left<=0) return "";
+  return ` <span class="countdown">冷却中 · 剩 ${left} 小时</span>`;
+}
+function cooldownExpired(it){
+  return it.cooldown && (Date.now()-it.cooldown.startedAt) >= 48*3600000;
+}
+
+function renderToday(){
+  const act = activeItems();
+  let html = dipBanner();
+  if(act.length===0){
+    if(S.items.length===0){
+      html += `<div class="hero">
+        ${flameSVG("normal",56)}
+        <h2>点一把小火苗</h2>
+        <p>不做宏大的计划。给每件事一个 2 分钟就能完成的最小行动，火小没关系，别让它灭。</p>
+        <button class="btn-primary" onclick="openAdd()">点第一把火</button>
+      </div>`;
+    } else {
+      html += `<div class="empty">进行中的火苗都熄了或休眠了。<br><br><button class="btn-primary" onclick="openAdd()">再点一把</button></div>`;
+    }
+  }
+  act.forEach(it=>{
+    const done = !!it.checkins[today];
+    const total = Object.keys(it.checkins).length;
+    const revives = (it.events||[]).filter(e=>e.type==="revive").length;
+    html += `<div class="card">
+      <div class="item-head">
+        ${flameSVG(it.status)}
+        <div class="item-info">
+          <div class="item-name">${esc(it.name)} ${statusBadge(it.status)}${cooldownChip(it)}</div>
+          <div class="item-action">${esc(reqText(it.status, it.action))}</div>
+          <div class="tiny" style="margin-top:3px;">累计 ${total} 天 · 复活 ${revives} 次</div>
+        </div>
+        <button class="btn-sm btn-ghost" onclick="openDetail('${it.id}')">详情</button>
+      </div>
+      ${cooldownExpired(it) ? `<div style="margin-top:10px;" class="row"><button class="btn-danger-ghost" onclick="finalizeEnd('${it.id}')">冷却结束，放下它</button><button onclick="cancelCooldown('${it.id}')">我回来了</button></div>`
+        : done ? `<button class="checkbtn done" onclick="uncheckin('${it.id}')">今天点亮了 ✓ 点一下可撤销</button>`
+        : `<button class="checkbtn btn-primary" onclick="checkin('${it.id}')">今天做到了</button>`}
+    </div>`;
+  });
+  if(act.length>0 && act.length<3){
+    html += `<div class="addrow"><button class="linklike" onclick="openAdd()">＋ 点一把新火（${act.length}/3）</button></div>`;
+  } else if(act.length>=3){
+    html += `<div class="addrow"><span class="tiny">最多同时 3 把火。想加新的，先让一把休眠。</span></div>`;
+  }
+  return html;
+}
+
+function openAdd(gate){
+  const act = activeItems();
+  if(act.length>=3){
+    modal(`<h3>三把火已经满了</h3><p class="muted" style="margin-bottom:12px;">加第 4 把之前，先安排好其中一把的去处。</p>`+
+      act.map(it=>`<div class="gate-item"><span>${flameSVG(it.status,16)} ${esc(it.name)}</span><span><button class="btn-sm btn-ghost" onclick="dormify('${it.id}',true)">休眠</button> <button class="btn-sm btn-ghost" onclick="startCooldown('${it.id}')">放下</button></span></div>`).join("")+
+      `<button class="btn-block btn-ghost" style="margin-top:6px;" onclick="closeModal()">先不加了</button>`);
+    return;
+  }
+  modal(`<h3>点一把新火</h3>
+    <div class="field"><label>它叫什么</label><input id="f-name" placeholder="比如：英语"></div>
+    <div class="field"><label>最小行动（2 分钟能做完的）</label><input id="f-action" placeholder="比如：背 5 个单词"></div>
+    <div class="field"><label>为什么开始（想放下时会回来看）</label><textarea id="f-why" placeholder="写一句真话就行"></textarea></div>
+    <button class="btn-primary btn-block" onclick="addItem()">点燃</button>`);
+}
+function addItem(){
+  const name=document.getElementById("f-name").value.trim();
+  const action=document.getElementById("f-action").value.trim();
+  const why=document.getElementById("f-why").value.trim();
+  if(!name||!action||!why){ alert("三个都填一下，尤其是为什么开始。"); return; }
+  S.items.push({id:uid(), name, action, why, createdAt:today, checkins:{}, status:"normal", revivingStreak:0, events:[{date:today,type:"lit",txt:"点了一把新火"}], cooldown:null, ended:false, dormant:false});
+  save(); closeModal(); render();
+}
+
+function openDetail(id){
+  const it = S.items.find(x=>x.id===id); if(!it) return;
+  if(!calCursor[id]) calCursor[id]=today.slice(0,7);
+  modal(`<h3>${esc(it.name)}</h3>
+    <div class="quote"><div class="q-label">为什么开始</div>${esc(it.why)}</div>
+    <div class="statgrid" style="margin-top:14px;">
+      <div class="stat"><div class="sl">累计行动</div><div class="sv">${Object.keys(it.checkins).length}<small> 天</small></div></div>
+      <div class="stat"><div class="sl">复活次数</div><div class="sv">${(it.events||[]).filter(e=>e.type==="revive").length}<small> 次</small></div></div>
+      <div class="stat"><div class="sl">状态</div><div class="sv" style="font-size:15px; margin-top:8px;">${STATUS_TXT[it.status]}</div></div>
+    </div>
+    <div class="cal-head">
+      <b style="font-size:14px;">${calCursor[id].slice(0,4)} 年 ${Number(calCursor[id].slice(5,7))} 月</b>
+      <span><button class="btn-sm btn-ghost" onclick="calMove('${id}',-1)">‹</button> <button class="btn-sm btn-ghost" onclick="calMove('${id}',1)">›</button></span>
+    </div>
+    <div class="cal">${calendarHTML(it, calCursor[id])}</div>
+    <p class="tiny" style="margin-top:10px;">橙色 = 点亮，灰色 = 没点，随时可以续上。</p>
+    <div class="sectiontitle">轨迹</div>
+    <div class="tl">${(it.events||[]).slice(-8).reverse().map(e=>`<p>${fmtMD(e.date)} · ${esc(e.txt)}</p>`).join("")||"<p>还没有记录</p>"}</div>
+    <div class="row" style="margin-top:18px;">
+      <button class="btn-ghost" onclick="editItem('${id}')">改最小行动</button>
+      ${!it.ended&&!it.dormant?`<button class="btn-danger-ghost" onclick="startCooldown('${id}')">想放下它</button>`:""}
+    </div>`);
+}
+function calMove(id,delta){
+  const d = parseKey(calCursor[id]+"-01"); d.setMonth(d.getMonth()+delta);
+  calCursor[id]=dayKey(d).slice(0,7); openDetail(id);
+}
+function calendarHTML(it, ym){
+  const [y,m]=ym.split("-").map(Number);
+  const first=new Date(y,m-1,1), startWd=(first.getDay()+6)%7; // 周一开头
+  const dim=new Date(y,m,0).getDate();
+  let cells=["一","二","三","四","五","六","日"].map(w=>`<div class="wd">${w}</div>`).join("");
+  for(let i=0;i<startWd;i++) cells+="<div></div>";
+  for(let d=1;d<=dim;d++){
+    const k=ym+"-"+String(d).padStart(2,"0");
+    let cls="d";
+    if(it.checkins[k]) cls+=" on";
+    else if(diffDays(it.createdAt,k)>=0 && diffDays(k,today)>0) cls+=" off";
+    else if(diffDays(today,k)>0) cls+=" future";
+    if(k===today) cls+=" today";
+    cells+=`<div class="${cls}">${d}</div>`;
+  }
+  return cells;
+}
+function editItem(id){
+  const it=S.items.find(x=>x.id===id);
+  modal(`<h3>改最小行动</h3>
+    <div class="field"><label>最小行动（定小一点，撑得住才算数）</label><input id="e-action" value="${esc(it.action)}"></div>
+    <div class="field"><label>为什么开始</label><textarea id="e-why">${esc(it.why)}</textarea></div>
+    <button class="btn-primary btn-block" onclick="saveEdit('${id}')">保存</button>`);
+}
+function saveEdit(id){
+  const it=S.items.find(x=>x.id===id);
+  it.action=document.getElementById("e-action").value.trim()||it.action;
+  it.why=document.getElementById("e-why").value.trim()||it.why;
+  save(); closeModal(); openDetail(id);
+}
+
+// ---- 放下 / 冷却 ----
+function startCooldown(id){
+  const it=S.items.find(x=>x.id===id);
+  modal(`<h3>想放下「${esc(it.name)}」？</h3>
+    <p class="muted" style="margin-bottom:12px;">可以。但不是现在——写下为什么，48 小时后再决定。冲动大多活不过冷却期。</p>
+    <div class="field"><label>为什么想放下</label><textarea id="c-reason" placeholder="写下来，48 小时后回来看"></textarea></div>
+    <button class="btn-primary btn-block" onclick="confirmCooldown('${id}')">进入 48 小时冷却</button>
+    <button class="btn-block btn-ghost" style="margin-top:8px;" onclick="closeModal()">算了，继续烧</button>`);
+}
+function confirmCooldown(id){
+  const it=S.items.find(x=>x.id===id);
+  const reason=document.getElementById("c-reason").value.trim();
+  if(!reason){ alert("写一句吧，给 48 小时后的自己。"); return; }
+  it.cooldown={reason, startedAt:Date.now()};
+  logEvent(it,"cooldown","进入冷却期");
+  save(); closeModal(); render();
+}
+function cancelCooldown(id){
+  const it=S.items.find(x=>x.id===id);
+  it.cooldown=null; logEvent(it,"cooldown-cancel","冷却期回来点火，放下作废");
+  save(); render(); alert("欢迎回来。什么都不清零。");
+}
+function finalizeEnd(id){
+  const it=S.items.find(x=>x.id===id);
+  modal(`<h3>放下「${esc(it.name)}」</h3>
+    <p class="muted" style="margin-bottom:12px;">它会被放进「放下的事」，累计天数保留。如果哪天想回来，随时可以复活。</p>
+    <div class="row"><button class="btn-ghost" onclick="cancelCooldown('${id}');closeModal();">再烧烧</button><button class="btn-danger-ghost" onclick="doEnd('${id}')">确认放下</button></div>`);
+}
+function doEnd(id){
+  const it=S.items.find(x=>x.id===id);
+  it.ended=true; it.endedAt=today; it.cooldown=null; it.status="ended";
+  logEvent(it,"end","选择放下（天数保留，随时可复活）");
+  save(); closeModal(); switchTab("today");
+}
+
+// ---- 休眠架 ----
+function dormify(id, fromGate){
+  const it=S.items.find(x=>x.id===id);
+  it.dormant=true; it.dormantAt=today;
+  logEvent(it,"dormant","移入休眠架（炭没死，随时复活）");
+  save(); closeModal(); if(fromGate) openAdd(); else render();
+}
+function reviveFromShelf(id){
+  const it=S.items.find(x=>x.id===id);
+  if(activeItems().length>=3){
+    openAdd(); return; // gate
+  }
+  it.dormant=false; it.status="wobble"; it.revivingStreak=0;
+  logEvent(it,"revive-shelf","从休眠架复活");
+  save(); switchTab("today");
+}
+function renderShelf(){
+  const dormant=S.items.filter(x=>x.dormant);
+  const ended=S.items.filter(x=>x.ended);
+  let html='<div class="sectiontitle" style="margin-top:8px;">休眠架</div>';
+  html += dormant.length? dormant.map(it=>{
+    const emberOver = it.emberSince && diffDays(it.emberSince,today)>30;
+    return `<div class="card"><div class="item-head">${flameSVG("ember")}
+      <div class="item-info"><div class="item-name">${esc(it.name)} <span class="status-badge st-dormant">休眠中</span></div>
+      <div class="tiny">累计 ${Object.keys(it.checkins).length} 天 · 复活 ${(it.events||[]).filter(e=>e.type==="revive").length} 次</div></div>
+      <button class="btn-sm btn-primary" onclick="reviveFromShelf('${it.id}')">复活</button></div></div>`;
+  }).join("") : `<div class="empty">暂时没有休眠的火苗。<br>炭火超过 30 天的事可以放进来，腾出进行中的位置。</div>`;
+  html+='<div class="sectiontitle">放下的事</div>';
+  html += ended.length? ended.map(it=>`<div class="card"><div class="item-head"><svg class="flame" width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="16" r="5" fill="#D3D1C7"/></svg>
+    <div class="item-info"><div class="item-name" style="color:var(--ink2);">${esc(it.name)}</div>
+    <div class="tiny">烧了 ${Object.keys(it.checkins).length} 天 · ${it.endedAt} 放下</div></div>
+    <button class="btn-sm btn-ghost" onclick="reviveEnded('${it.id}')">再点燃</button></div></div>`).join("")
+    : '<div class="empty">还没有放下过任何事。</div>';
+  return html;
+}
+function reviveEnded(id){
+  const it=S.items.find(x=>x.id===id);
+  if(activeItems().length>=3){ openAdd(); return; }
+  it.ended=false; it.dormant=false; it.status="wobble"; it.revivingStreak=0; it.emberSince=null;
+  logEvent(it,"relit","重新点燃");
+  save(); switchTab("today");
+}
+// 炭火超30天建议
+function emberSuggest(){
+  return activeItems().filter(it=>it.status==="ember" && it.emberSince && diffDays(it.emberSince,today)>30)
+    .map(it=>`<div class="banner"><div><b>${esc(it.name)}</b> 已经炭火超过 30 天。要不要把它移进休眠架？炭没死，随时复活，还能腾出位置。<br><br><button class="btn-sm" onclick="dormify('${it.id}')">移入休眠架</button></div></div>`).join("");
+}
+
+// ---- 周报 ----
+function weekStart(k){ const d=parseKey(k); const wd=(d.getDay()+6)%7; return addDays(k,-wd); }
+function renderReport(){
+  const wk = weekStart(today);
+  const rep = buildReport(wk);
+  const past = Object.keys(S.reports||{}).filter(w=>w!==wk).sort().reverse();
+  let html=`<div style="display:flex; justify-content:space-between; align-items:baseline; margin-top:8px;">
+      <span style="font-size:15px; font-weight:500;">周报 · ${fmtMD(wk)} – ${fmtMD(addDays(wk,6))}</span></div>`;
+  html += reportHTML(rep);
+  if(past.length){ html+='<div class="sectiontitle">往期</div><div class="report-weeks">'+past.map(w=>`<span class="chip" onclick="openPastReport('${w}')">${fmtMD(w)} 那一周</span>`).join("")+"</div>"; }
+  return html;
+}
+function buildReport(wk){
+  const end = addDays(wk,6);
+  const alive = S.items.filter(x=>!x.ended);
+  const items = alive.map(it=>{
+    let days=0;
+    for(let i=0,k=wk;i<7;i++,k=addDays(k,1)) if(it.checkins[k]) days++;
+    return {name:it.name, status: it.dormant ? "dormant" : it.status, days};
+  });
+  let weekTotal=0;
+  alive.forEach(it=>{ for(let i=0,k=wk;i<7;i++,k=addDays(k,1)) if(it.checkins[k]) weekTotal++; });
+  const totalDays = S.items.reduce((n,it)=>n+Object.keys(it.checkins).length,0);
+  const revives = S.items.reduce((n,it)=>n+(it.events||[]).filter(e=>e.type==="revive").length,0);
+  const evs=[];
+  S.items.forEach(it=>(it.events||[]).forEach(e=>{ if(e.date>=wk && e.date<=end) evs.push({...e,name:it.name}); }));
+  evs.sort((a,b)=>a.date<b.date?-1:1);
+  const whyItem = S.items.filter(x=>!x.ended&&!x.dormant).sort((a,b)=>{
+    const da=a.checkins[wk]?1:0, db=b.checkins[wk]?1:0; return da-db;
+  })[0];
+  return {weekId:wk, items, weekTotal, totalDays, revives, events:evs.slice(-6), why:whyItem?{name:whyItem.name, text:whyItem.why}:null};
+}
+function reportHTML(rep){
+  let html=`<div class="card">`;
+  html+=`<div class="statgrid"><div class="stat"><div class="sl">本周行动</div><div class="sv">${rep.weekTotal}<small> 天</small></div></div>
+    <div class="stat"><div class="sl">累计行动</div><div class="sv">${rep.totalDays}<small> 天</small></div></div>
+    <div class="stat"><div class="sl">复活次数</div><div class="sv">${rep.revives}<small> 次</small></div></div></div>`;
+  html+='<div style="font-size:14px; font-weight:500; margin-bottom:8px;">火苗状态</div>';
+  html += rep.items.length? rep.items.map(x=>`<div style="display:flex; justify-content:space-between; align-items:center; border:0.5px solid var(--line); border-radius:var(--r-md); padding:9px 12px; margin-bottom:6px;">
+      <span style="display:flex; align-items:center; gap:8px;">${flameSVG(x.status,16)} <span style="font-size:13px;">${esc(x.name)}</span></span>
+      <span class="tiny">${STATUS_TXT[x.status]||"已放下"} · ${x.days}/7 天</span></div>`).join("")
+    : '<p class="muted">这一周还没有火苗。</p>';
+  if(rep.events.length){
+    html+='<div style="font-size:14px; font-weight:500; margin:14px 0 4px;">本周发生的事</div><div class="tl">';
+    html+=rep.events.map(e=>`<p>${fmtMD(e.date)} · ${esc(e.name)} ${esc(e.txt)}</p>`).join("");
+    html+="</div>";
+  }
+  if(rep.why){
+    html+=`<div class="quote" style="margin-top:14px;"><div class="q-label">为什么开始 · ${esc(rep.why.name)}</div>「${esc(rep.why.text)}」</div>`;
+  }
+  html+=`<p class="tiny" style="margin-top:12px;">下周的最小行动撑不住的话，就去把它改小——降目标不叫失败。</p></div>`;
+  return html;
+}
+function openPastReport(wk){
+  const rep = S.reports[wk] || buildReport(wk);
+  modal(`<h3>周报 · ${fmtMD(wk)} – ${fmtMD(addDays(wk,6))}</h3>`+reportHTML(rep));
+}
+function maybeWeeklyReport(){
+  const wk = weekStart(today);
+  S.seenReports = S.seenReports||[]; S.reports = S.reports||{};
+  const isSunday = new Date().getDay()===0;
+  const hour = new Date().getHours();
+  if(isSunday && hour>=18 && !S.seenReports.includes(wk) && S.items.length){
+    S.reports[wk]=buildReport(wk); S.seenReports.push(wk); save();
+    openPastReport(wk);
+  } else {
+    S.reports[wk]=buildReport(wk); save();
+  }
+}
+
+// ---- 弹层 ----
+function modal(html){
+  document.getElementById("modalroot").innerHTML =
+    `<div class="modal-mask" onclick="if(event.target===this)closeModal()"><div class="modal">${html}</div></div>`;
+}
+function closeModal(){ document.getElementById("modalroot").innerHTML=""; }
+
+// ---- 导航 ----
+function render(){
+  const main=document.getElementById("main");
+  if(currentTab==="today") main.innerHTML = emberSuggest()+renderToday();
+  else if(currentTab==="report") main.innerHTML = renderReport();
+  else main.innerHTML = renderShelf();
+  document.querySelectorAll(".bottomnav button").forEach(b=>b.classList.toggle("active",b.dataset.tab===currentTab));
+}
+function switchTab(t){ currentTab=t; closeModal(); render(); }
+document.querySelectorAll(".bottomnav button").forEach(b=>b.addEventListener("click",()=>switchTab(b.dataset.tab)));
+
+// ---- 启动 ----
+(function init(){
+  const d=new Date();
+  const wd=["日","一","二","三","四","五","六"][d.getDay()];
+  document.getElementById("datechip").textContent = `${d.getMonth()+1} 月 ${d.getDate()} 日 · 周${wd}`;
+  refreshStatuses();
+  maybeWeeklyReport();
+  render();
+})();
+</script>
+</body>
+</html>
